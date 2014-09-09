@@ -28,6 +28,7 @@ int isTrack = 0;
 int cameraCount = 0;
 Camera *camera[kMaxCameras];
 cModuleSync *sync = new cModuleSync();
+float focalLenght;
 //»»»»»»»»»»»»»»»»»»»»»»»»»»»»» COMMON FUNCTIONS
 void changeZ(int, void*)
 {
@@ -215,6 +216,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	Core::DistortionModel lensDistortion;
 	camera[0]->GetDistortionModel(lensDistortion);
 
+	focalLenght = camera[0]->FocalLength();
+
 	//*********** PHIDGETS *************
 	CPhidgetInterfaceKitHandle ifKit = 0;
 	CPhidgetInterfaceKit_create(&ifKit);
@@ -258,12 +261,15 @@ int _tmain(int argc, _TCHAR* argv[])
 			restart = 0;
 		}
 		FrameGroup *frameGroup = sync->GetFrameGroup();
-		if (frameGroup)
+		if (frameGroup && frameGroup->Count()>1)
 		{
 			imgRGB.setTo(0);
 			for (int k = 0; k < frameGroup->Count(); k++)
 			{
 				Frame * frame = frameGroup->GetFrame(k);
+				
+				assert(frame!= NULL);
+
 				frame->Rasterize(cameraWidth, cameraHeight, cameraWidth, 8, imageBuffer);
 
 				img->imageData = (char *)imageBuffer;
@@ -278,8 +284,21 @@ int _tmain(int argc, _TCHAR* argv[])
 					{
 						cObject *obj = frame->Object(i);
 
+						assert(obj!=NULL);
+
 						float x = obj->X();
 						float y = obj->Y();
+
+					//	if (i == 0)
+						//	cout << obj->Width() << "\n";
+
+					//	if (i == 0)
+					//	cout << "before:" << x << ", " << y << "\n";
+
+						Core::Undistort2DPoint(lensDistortion, x, y);
+
+						//if (i == 0)
+						//cout << "after:" << x << ", " << y << "\n";
 
 						points[i] = Point(x, y);
 
@@ -291,7 +310,7 @@ int _tmain(int argc, _TCHAR* argv[])
 						char c3[30] = "(";
 						char cx[5] = "100";
 						char cy[5] = "100";
-						char cw[5] = "";
+						char cw[5] = ""; 
 						char ch[5] = "";
 						sprintf_s(c2, "%d", k);
 						sprintf_s(cx, "%d", a);
@@ -315,38 +334,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
 						//	std::cout << "(" << cvRound(x) << ", " << cvRound(y) << ") \n";
 
-						if (init == 1 && isTrack == 1)
-						{
-							int cx = cvRound(x);
-							int cy = cvRound(y);
-							if (coords.size() == 0 || (coords.size() > 0 && coords[coords.size() - 1].isEqual(cx, cy, z_indez) == 0))
-							{
-								if (isNew == 1 && pos > 1)
-									coords[coords.size() - 1].setEndCP();
-								coords.push_back(Coordinate(inc, cvRound(x), cvRound(y), z_indez, inc, isNew));
-								//	points.push_back(cvPoint(cvRound(cameraWidth - x), cvRound(y)));
-
-								for (int i = 0; i < coords.size(); i++)
-								{
-									CvPoint p1 = cvPoint((cameraWidth - coords[i].getPoint().x), (coords[i].getPoint().y));
-									if (i == 0 || coords[i].getNew() == 1)
-										cvLine(img, p1, p1, CV_RGB(0, 0, 255), 1);
-									else
-									{
-										CvPoint p0 = cvPoint((cameraWidth - coords[i - 1].getPoint().x), (coords[i - 1].getPoint().y));
-										cvLine(img, p0, p1, CV_RGB(0, 0, 255), 1);
-									}
-								}
-								isNew = 0;
-								//last = cvPoint(cvRound(x), cvRound(y));
-								pos++;
-							}
-						}
-						if (isTrack == 0)
-							isNew = 1;
-						int radius = 10;
-
-						Core::Undistort2DPoint(lensDistortion, x, y);
 					}
 
 					//»»»»»»»»»»»»»»
@@ -379,6 +366,37 @@ int _tmain(int argc, _TCHAR* argv[])
 					//putText(imgRGB, c, cvPoint(x, y), 1,1, cvScalar(255.0, 0.0, 0.0, 0.0));
 					//flip(imgRGB, imgRGB, 1);
 					putText(imgRGB, c, cvPoint(a, b - 20), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(0, 250, 0), 1, CV_AA);
+
+					if (init == 1)// && isTrack == 1)
+					{
+						int cx = cvRound(a);
+						int cy = cvRound(b);
+						if (coords.size() == 0 || (coords.size() > 0 && coords[coords.size() - 1].isEqual(cx, cy, z_indez) == 0))
+						{
+							if (isNew == 1 && pos > 1)
+								coords[coords.size() - 1].setEndCP();
+							coords.push_back(Coordinate(inc, cvRound(a), cvRound(b), z_indez, inc, isNew));
+							//	points.push_back(cvPoint(cvRound(cameraWidth - x), cvRound(y)));
+
+							for (int i = 0; i < coords.size(); i++)
+							{
+								CvPoint p1 = cvPoint((cameraWidth - coords[i].getPoint().x), (coords[i].getPoint().y));
+								if (i == 0 || coords[i].getNew() == 1)
+									cvLine(img, p1, p1, CV_RGB(0, 0, 255), 1);
+								else
+								{
+									CvPoint p0 = cvPoint((cameraWidth - coords[i - 1].getPoint().x), (coords[i - 1].getPoint().y));
+									cvLine(img, p0, p1, CV_RGB(0, 0, 255), 1);
+								}
+							}
+							isNew = 0;
+							//last = cvPoint(cvRound(x), cvRound(y));
+							pos++;
+						}
+					}
+					if (isTrack == 0)
+						isNew = 1;
+					int radius = 10;
 				}
 				frame->Release();
 			}
@@ -392,6 +410,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		imshow("IRTRACK", imgRGB);
 
 		int key = waitKey(2);
+
+		cout << "\n" << key;
 		if (key==115) saveFile(coords, cameraWidth);
 		else if (key == 114) restart = 1;
 		else if (key == 105) init = 1;
