@@ -30,6 +30,11 @@ public:
 	CvPoint getPoint();
 	int getNew();
 	int isEqual(int x, int y, int z);
+	int getX();
+	int getY();
+	int getZ();
+	void setX(int a);
+	void setY(int a);
 	
 };
 #endif

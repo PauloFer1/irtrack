@@ -27,6 +27,9 @@
     <ClInclude Include="Coordinate.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="IRTrack.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

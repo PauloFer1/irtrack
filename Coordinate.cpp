@@ -19,6 +19,7 @@ void Coordinate::setCoordinate(int incp, int xp, int yp, int zp, int timep, int 
 	time = timep;
 	isNew = isNewp;
 }
+
 string Coordinate::getString()
 {
 	string suffix = "CP_P,";
@@ -63,4 +64,25 @@ int Coordinate::getNew()
 {
 	return(isNew);
 }
+int Coordinate::getX()
+{
+	return(x);
+}
+int Coordinate::getY()
+{
+	return(y);
+}
+int Coordinate::getZ()
+{
+	return(z);
+}
+void Coordinate::setX(int a)
+{
+	x=a;
+}
+void Coordinate::setY(int a)
+{
+	y = a;
+}
+
 
