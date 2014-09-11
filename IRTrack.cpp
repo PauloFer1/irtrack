@@ -280,7 +280,8 @@ int _tmain(int argc, _TCHAR* argv[])
 				if (frame->ObjectCount() >= 3)
 				{
 					Point points[3];
-					for (int i = 0; i < frame->ObjectCount(); i++)
+					//for (int i = 0; i < frame->ObjectCount(); i++)
+					for (int i = 0; i < 3; i++)
 					{
 						cObject *obj = frame->Object(i);
 
@@ -289,16 +290,8 @@ int _tmain(int argc, _TCHAR* argv[])
 						float x = obj->X();
 						float y = obj->Y();
 
-					//	if (i == 0)
-						//	cout << obj->Width() << "\n";
-
-					//	if (i == 0)
-					//	cout << "before:" << x << ", " << y << "\n";
-
 						Core::Undistort2DPoint(lensDistortion, x, y);
 
-						//if (i == 0)
-						//cout << "after:" << x << ", " << y << "\n";
 
 						points[i] = Point(x, y);
 
@@ -327,12 +320,6 @@ int _tmain(int argc, _TCHAR* argv[])
 						strcat_s(c, cw);
 						strcat_s(c, ", H:");
 						strcat_s(c, ch);
-						//putText(imgRGB, c, cvPoint(x, y), 1,1, cvScalar(255.0, 0.0, 0.0, 0.0));
-						//flip(imgRGB, imgRGB, 1);
-						//putText(imgRGB, c, cvPoint(a, b - 20), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(0, 250, 0), 1, CV_AA);
-
-
-						//	std::cout << "(" << cvRound(x) << ", " << cvRound(y) << ") \n";
 
 					}
 
