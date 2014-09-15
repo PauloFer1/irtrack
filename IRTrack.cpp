@@ -23,7 +23,7 @@ using namespace CameraLibrary;
 
 //GLOBALS
 int z_indez = 50;
-int maxZ_index = 300;
+int maxZ_index = 290;
 int slider = 50;
 int isTrack = 0;
 int cameraCount = 0;
@@ -74,9 +74,10 @@ void changeThre(int, void*)
 void smoothing()
 {
 	//How many neighbours to smooth
-	int NO_OF_NEIGHBOURS = 5;
+	int NO_OF_NEIGHBOURS = 4;
 	int NO_OF_NEIGHBOURS_Z = 2;
 	vector<Coordinate> tmp = coords;
+	vector<Coordinate> tmp2;
 	for (int i = 0; i<coords.size(); i++)
 	{
 
@@ -113,19 +114,58 @@ void smoothing()
 			coords[i].setY(coords[i].getY() / NO_OF_NEIGHBOURS);
 			coords[i].setZ(coords[i].getZ() / NO_OF_NEIGHBOURS_Z);
 		}
+		if (coords[i].getZ() < z_indez)
+			coords[i].setZ(z_indez);
+		if (coords[i].getZ() > maxZ_index)
+			coords[i].setZ(maxZ_index);
+
 		if (i>0)
 		{
-			if ((coords[i - 1].getX() == coords[i].getX()) && (coords[i - 1].getY() == coords[i].getY() ) && (coords[i - 1].getY() == coords[i].getY()) )
+			if ((coords[i - 1].getX() == coords[i].getX()) && (coords[i - 1].getY() == coords[i].getY()) && (coords[i - 1].getY() == coords[i].getY()))
 			{
-				coords.erase(coords.begin()+(i-1));
+				//coords.erase(coords.begin()+(i-1));
 			}
+			else
+				tmp2.push_back(coords[i]);
+
 		}
 
 	}
+	coords = tmp2;
 
+}
+void drawCircle()
+{
+	int countTmp = 0;
+	for (int i = 0; i <= 100; i++)
+	{
+		int y = sqrt(10000-(i*i));
+
+		coords.push_back(Coordinate(countTmp, i, y, 100, i, 0));
+		countTmp++;
+	}
+	for (int i = 100; i >= 0; i--)
+	{
+		int y = - sqrt(10000 - (i*i));
+		coords.push_back(Coordinate(countTmp, i, y, 100, i, 0));
+		countTmp++;
+	}
+	for (int i = 0; i >= -100; i--)
+	{
+		int y = - sqrt(10000 - (i*i));
+		coords.push_back(Coordinate(countTmp, i, y, 100, i, 0));
+		countTmp++;
+	}
+	for (int i = -100; i <= 0; i++)
+	{
+		int y = sqrt(10000 - (i*i));
+		coords.push_back(Coordinate(countTmp, i, y, 100, i, 0));
+		countTmp++;
+	}
 }
 void saveFile(int cameraWidth)
 {
+	drawCircle();
 	if (smooth==1)
 		smoothing();
 	ofstream myfile("example.jcs");
@@ -491,6 +531,10 @@ int _tmain(int argc, _TCHAR* argv[])
 				saveCoord(inc, a, b, d);
 				drawLine(a, b, imgRGB, cameraWidth);
 			}
+			if (d < z_indez)
+				d = z_indez;
+			if (d > maxZ_index)
+				d = maxZ_index;
 
 			circle(imgRGB, cvPoint(a, pencil[cameraIndex].y), 2, CV_RGB(255, 0, 0));
 			char c[30] = "P";
@@ -535,6 +579,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//	cout << "\n" << key;
 		if (key==115) saveFile(cameraWidth);
 		else if (key == 114) restart = 1;
+		else if (key == 112) init = 0;
 		else if (key == 105) init = 1;
 		else if (key == 27) break;
 
